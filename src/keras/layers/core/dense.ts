@@ -15,96 +15,83 @@
  * =============================================================================
  */
 
-import { NDArrayMathCPU } from '../../../math/math_cpu';
 import { NDArray, Array2D } from '../../../math/ndarray';
-import { ActivationFunction, ReLUFunc, SigmoidFunc, TanHFunc } from '../../../math/activation_functions';
+import { NDArrayMath } from '../../../math/math';
+import { ActivationFunction, ReLUFunc, SigmoidFunc, TanHFunc } from
+  '../../../math/activation_functions';
 import { Layer } from '../../layer';
 
 export class Dense extends Layer {
 
   protected units: number;
   protected activation: string;
-  protected use_bias: boolean;
-  protected kernel_initializer: string;
-  protected bias_initializer: string;
-  protected kernel_regularizer: string;
-  protected bias_regularizer: string;
-  protected activity_regularizer: string;
-  protected kernel_constraint: string;
-  protected bias_constraint: string;
+  protected useBias: boolean;
+  protected kernelInitializer: string;
+  protected biasInitializer: string;
+  protected kernelRegularizer: string;
+  protected biasRegularizer: string;
+  protected activityRegularizer: string;
+  protected kernelConstraint: string;
+  protected biasConstraint: string;
 
-  private readonly default_activation: string = "linear";
-  private readonly default_use_bias: boolean = true;
+  private readonly DEFAULT_ACTIVATION: string = "linear";
+  private readonly DEFAULT_USE_BIAS: boolean = true;
 
-  private input_last_dim: number;
+  private inputLastDim: number;
   private kernel: Array2D;  // TODO(cais): Handle other ranks.
   private bias: Array2D;
-  private activation_func: ActivationFunction;
+  private activationFunc: ActivationFunction;
 
-  private math: NDArrayMathCPU;
-
+  // tslint:disable-next-line:no-any
   constructor(attrs: any) {
-    // units: number,
-    // activation?: string,
-    // use_bias?: boolean,
-    // kernerl_initializer?: string,
-    // bias_initializer?: string,
-    // kernel_regularizer?: string,
-    // bias_regularizer?: string,
-    // activity_regularizer?: string,
-    // kernel_constraint?: string,
-    // bias_constraint?: string) {
     super(attrs);
 
-    // TODO(cais): GPU case.
-    this.math = new NDArrayMathCPU();
-
     this.units = attrs.units;
-    this.use_bias = attrs.use_bias
-    if (this.use_bias == undefined) {
-      this.use_bias = this.default_use_bias;
+    this.useBias = attrs.use_bias;
+    if (this.useBias === undefined) {
+      this.useBias = this.DEFAULT_USE_BIAS;
     }
     this.activation = attrs.activation;
-    if (this.activation == undefined) {
-      this.activation = this.default_activation;
+    if (this.activation === undefined) {
+      this.activation = this.DEFAULT_ACTIVATION;
     }
-    if (this.activation.toLowerCase() == "relu") {
-      this.activation_func = new ReLUFunc();
-    } else if (this.activation.toLowerCase() == "sigmoid") {
-      this.activation_func = new SigmoidFunc;
-    } else if (this.activation.toLowerCase() == "tanh") {
-      this.activation_func = new TanHFunc();
-    } else if (this.activation != this.default_activation) {
+    if (this.activation.toLowerCase() === "relu") {
+      this.activationFunc = new ReLUFunc();
+    } else if (this.activation.toLowerCase() === "sigmoid") {
+      this.activationFunc = new SigmoidFunc();
+    } else if (this.activation.toLowerCase() === "tanh") {
+      this.activationFunc = new TanHFunc();
+    } else if (this.activation !== this.DEFAULT_ACTIVATION) {
       throw new Error("Unsupported activation type: " + this.activation);
     }
-    this.kernel_initializer = attrs.kernel_initializer;
-    this.bias_initializer = attrs.bias_initializer;
-    this.kernel_regularizer = attrs.kernel_regularizer;
-    this.bias_regularizer = attrs.bias_regularizer;
-    this.activity_regularizer = attrs.activity_regularizer;
-    this.kernel_constraint = attrs.kernel_constraint;
-    this.bias_constraint = attrs.bias_constraint;
+    this.kernelInitializer = attrs.kernel_initializer;
+    this.biasInitializer = attrs.bias_initializer;
+    this.kernelRegularizer = attrs.kernel_regularizer;
+    this.biasRegularizer = attrs.bias_regularizer;
+    this.activityRegularizer = attrs.activity_regularizer;
+    this.kernelConstraint = attrs.kernel_constraint;
+    this.biasConstraint = attrs.bias_constraint;
 
     // TODO(cais): Implement regularizers and constraints.
   }
 
-  call(x: NDArray) {
+  call(math: NDArrayMath, x: NDArray) {
     if (!(x instanceof Array2D)) {
       throw new Error(
         'Array2D is the only shape supported by Dense currently');
     }
-    if (this.kernel == undefined) {
+    if (this.kernel === undefined) {
       // Lazy initialization of the kernel and bias.
-      this.input_last_dim = x.shape[x.shape.length - 1];
-      this.kernel = Array2D.zeros([this.input_last_dim, this.units]);
+      this.inputLastDim = x.shape[x.shape.length - 1];
+      this.kernel = Array2D.zeros([this.inputLastDim, this.units]);
       // TODO(cais): Use this.kernel_initializer.
 
-      if (this.use_bias) {
+      if (this.useBias) {
         this.bias = Array2D.zeros([1, this.units]);
       }
     } else {
       // Check for shape mismatch.
-      if (x.shape[x.shape.length - 1] != this.input_last_dim) {
+      if (x.shape[x.shape.length - 1] !== this.inputLastDim) {
         throw new Error(
           'Last dimension of input (' + x.shape[x.shape.length - 1] +
           ') does not match first dimension of kernel (' +
@@ -112,12 +99,12 @@ export class Dense extends Layer {
       }
     }
 
-    let output: NDArray = this.math.matMul(x, this.kernel);
-    if (this.use_bias) {
-      output = this.math.add(output, this.bias);
+    let output: NDArray = math.matMul(x, this.kernel);
+    if (this.useBias) {
+      output = math.add(output, this.bias);
     }
-    if (this.activation_func != undefined) {
-      output = this.activation_func.output(this.math, output);
+    if (this.activationFunc !== undefined) {
+      output = this.activationFunc.output(math, output);
     }
     return output;
   }

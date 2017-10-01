@@ -17,15 +17,24 @@
 
 import { Layer } from './layer';
 import { Array1D, NDArray } from '../math/ndarray';
+import { NDArrayMathGPU } from '../math/math_gpu';
 
 describe('Layer', () => {
+  let math: NDArrayMathGPU;
+  beforeEach(() => {
+    math = new NDArrayMathGPU();
+    math.startScope();
+  });
+
+  afterEach(() => {
+    math.endScope(null);
+    math.dispose();
+  });
 
   it('Layer constructor and default call', () => {
-    let layer: Layer = new Layer({});
-    console.log('layer =', layer);
-
-    let x: Array1D = Array1D.new([10, 20, 30]);
-    let y: NDArray = layer.call(x);
+    const layer: Layer = new Layer({});
+    const x: Array1D = Array1D.new([10, 20, 30]);
+    const y: NDArray = layer.call(math, x);
     expect(y.getValues()).toEqual(new Float32Array([10, 20, 30]));
   });
 

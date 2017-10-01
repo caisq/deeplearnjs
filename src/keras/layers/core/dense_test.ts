@@ -15,70 +15,81 @@
  * =============================================================================
  */
 
+import { NDArrayMathGPU } from '../../../math/math_gpu';
 import { Dense } from './dense';
 import { Array2D, NDArray } from '../../../math/ndarray';
 
-describe('Layer', () => {
+describe('Dense Layer Test', () => {
+  let math: NDArrayMathGPU;
+  beforeEach(() => {
+    math = new NDArrayMathGPU();
+    math.startScope();
+  });
+
+  afterEach(() => {
+    math.endScope(null);
+    math.dispose();
+  });
 
   it('Dense layer: units=1', () => {
-    let dense_layer: Dense = new Dense({ "units": 1 });
+    const denseLayer: Dense = new Dense({ "units": 1 });
 
-    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
     // Changes in dimensions other than th last one should be okay.
-    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
-    let x4: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
-    let y: NDArray = dense_layer.call(x1);
+    const x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    const x4: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = denseLayer.call(math, x1);
     expect(y.shape).toEqual([2, 1]);
 
-    y = dense_layer.call(x2);
+    y = denseLayer.call(math, x2);
     expect(y.shape).toEqual([3, 1]);
 
-    expect(() => dense_layer.call(x4)).toThrow();
+    expect(() => denseLayer.call(math, x4)).toThrow();
   });
 
   it('Dense layer: units=1 activation=ReLU', () => {
-    let dense_layer: Dense = new Dense({ "units": 1, "activation": "ReLU" });
+    const denseLayer: Dense = new Dense({ "units": 1, "activation": "ReLU" });
 
-    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
-    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
-    let x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
-    let y: NDArray = dense_layer.call(x1);
+    const x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    const x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = denseLayer.call(math, x1);
     expect(y.shape).toEqual([2, 1]);
 
-    y = dense_layer.call(x2);
+    y = denseLayer.call(math, x2);
     expect(y.shape).toEqual([3, 1]);
 
-    expect(() => dense_layer.call(x3)).toThrow();
+    expect(() => denseLayer.call(math, x3)).toThrow();
   });
 
   it('Dense layer: units=1 no bias', () => {
-    let dense_layer: Dense = new Dense({ "units": 1, "use_bias": false });
+    const denseLayer: Dense = new Dense({ "units": 1, "use_bias": false });
 
-    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
-    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
-    let x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
-    let y: NDArray = dense_layer.call(x1);
+    const x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    const x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = denseLayer.call(math, x1);
     expect(y.shape).toEqual([2, 1]);
 
-    y = dense_layer.call(x2);
+    y = denseLayer.call(math, x2);
     expect(y.shape).toEqual([3, 1]);
 
-    expect(() => dense_layer.call(x3)).toThrow();
+    expect(() => denseLayer.call(math, x3)).toThrow();
   });
 
   it('Dense layer: units=2', () => {
-    let dense_layer: Dense = new Dense({ "units": 2 });
+    const denseLayer: Dense = new Dense({ "units": 2 });
 
-    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
-    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
-    let x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
-    let y: NDArray = dense_layer.call(x1);
+    const x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    const x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = denseLayer.call(math, x1);
     expect(y.shape).toEqual([2, 2]);
 
-    y = dense_layer.call(x2);
+    y = denseLayer.call(math, x2);
     expect(y.shape).toEqual([3, 2]);
 
-    expect(() => dense_layer.call(x3)).toThrow();
+    expect(() => denseLayer.call(math, x3)).toThrow();
   });
 
 });

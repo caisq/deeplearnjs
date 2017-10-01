@@ -16,12 +16,14 @@
  */
 
 import { NDArray } from '../math/ndarray';
+import { NDArrayMath } from '../math/math';
 
 export class Layer {
+  // tslint:disable-next-line:no-any
   constructor(attrs: any) {
   }
 
-  call(x: NDArray): NDArray {
+  call(math: NDArrayMath, x: NDArray): NDArray {
     return x;
   }
 }
