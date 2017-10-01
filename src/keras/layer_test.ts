@@ -21,9 +21,7 @@ import { Array1D, NDArray } from '../math/ndarray';
 describe('Layer', () => {
 
   it('Layer constructor and default call', () => {
-    // let attrs = { 'name': 'fooLayer' };
-    // let layer: Layer = new Layer(attrs);
-    let layer: Layer = new Layer();
+    let layer: Layer = new Layer({});
     console.log('layer =', layer);
 
     let x: Array1D = Array1D.new([10, 20, 30]);

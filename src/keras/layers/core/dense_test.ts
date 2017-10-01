@@ -20,19 +20,65 @@ import { Array2D, NDArray } from '../../../math/ndarray';
 
 describe('Layer', () => {
 
-  it('Dense layer: units = 1', () => {
-    // let attrs = { 'name': 'fooLayer' };
-    // let layer: Layer = new Layer(attrs);
-    let dense_layer: Dense = new Dense(1);
-    console.log('dense_layer =', dense_layer);
+  it('Dense layer: units=1', () => {
+    let dense_layer: Dense = new Dense({ "units": 1 });
+
+    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    // Changes in dimensions other than th last one should be okay.
+    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    let x4: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = dense_layer.call(x1);
+    expect(y.shape).toEqual([2, 1]);
+
+    y = dense_layer.call(x2);
+    expect(y.shape).toEqual([3, 1]);
+
+    expect(() => dense_layer.call(x4)).toThrow();
+  });
+
+  it('Dense layer: units=1 activation=ReLU', () => {
+    let dense_layer: Dense = new Dense({ "units": 1, "activation": "ReLU" });
 
     let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
     let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    let x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
     let y: NDArray = dense_layer.call(x1);
-    console.log("1. y =", y);  // DEBUG
+    expect(y.shape).toEqual([2, 1]);
 
     y = dense_layer.call(x2);
-    console.log("2. y =", y);  // DEBUG
+    expect(y.shape).toEqual([3, 1]);
+
+    expect(() => dense_layer.call(x3)).toThrow();
+  });
+
+  it('Dense layer: units=1 no bias', () => {
+    let dense_layer: Dense = new Dense({ "units": 1, "use_bias": false });
+
+    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    let x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = dense_layer.call(x1);
+    expect(y.shape).toEqual([2, 1]);
+
+    y = dense_layer.call(x2);
+    expect(y.shape).toEqual([3, 1]);
+
+    expect(() => dense_layer.call(x3)).toThrow();
+  });
+
+  it('Dense layer: units=2', () => {
+    let dense_layer: Dense = new Dense({ "units": 2 });
+
+    let x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    let x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    let x3: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = dense_layer.call(x1);
+    expect(y.shape).toEqual([2, 2]);
+
+    y = dense_layer.call(x2);
+    expect(y.shape).toEqual([3, 2]);
+
+    expect(() => dense_layer.call(x3)).toThrow();
   });
 
 });

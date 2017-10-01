@@ -18,9 +18,7 @@
 import { NDArray } from '../math/ndarray';
 
 export class Layer {
-  constructor() {
-    // constructor(attrs: any) {
-
+  constructor(attrs: any) {
   }
 
   call(x: NDArray): NDArray {
