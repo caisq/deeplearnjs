@@ -47,6 +47,23 @@ describe('Dense Layer Test', () => {
     expect(() => denseLayer.call(math, x4)).toThrow();
   });
 
+  it('Dense layer: units=1, kernel_initializer=glorot_normal', () => {
+    const denseLayer: Dense = new Dense(
+      { "units": 1, "kernel_initializer": "glorot_normal" });
+
+    const x1: Array2D = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    // Changes in dimensions other than th last one should be okay.
+    const x2: Array2D = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
+    const x4: Array2D = Array2D.new([2, 3], [[1, 2, 3], [4, 5, 6]]);
+    let y: NDArray = denseLayer.call(math, x1);
+    expect(y.shape).toEqual([2, 1]);
+
+    y = denseLayer.call(math, x2);
+    expect(y.shape).toEqual([3, 1]);
+
+    expect(() => denseLayer.call(math, x4)).toThrow();
+  });
+
   it('Dense layer: units=1 activation=ReLU', () => {
     const denseLayer: Dense = new Dense({ "units": 1, "activation": "ReLU" });
 

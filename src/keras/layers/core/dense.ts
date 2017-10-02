@@ -19,7 +19,8 @@ import { NDArray, Array2D } from '../../../math/ndarray';
 import { NDArrayMath } from '../../../math/math';
 import { ActivationFunction, ReLUFunc, SigmoidFunc, TanHFunc } from
   '../../../math/activation_functions';
-import { Initializer, RandomUniformInitializer } from '../../../initializers'
+import { Initializer, VarianceScalingInitializer, ZerosInitializer } from
+  '../../../initializers';
 import { Layer } from '../../layer';
 
 export class Dense extends Layer {
@@ -38,11 +39,13 @@ export class Dense extends Layer {
   private readonly DEFAULT_ACTIVATION: string = "linear";
   private readonly DEFAULT_USE_BIAS: boolean = true;
   private readonly DEFAULT_KERNEL_INITIALIZER = "glorot_uniform";
+  private readonly DEFAULT_BIAS_INITIALIZER = "zeros";
 
   private inputLastDim: number;
   private kernel: Array2D;  // TODO(cais): Handle other ranks.
   private bias: Array2D;
   private kernelInitializerObject: Initializer;
+  private biasInitializerObject: Initializer;
   private activationFunc: ActivationFunction;
 
   // tslint:disable-next-line:no-any
@@ -54,10 +57,9 @@ export class Dense extends Layer {
     if (this.useBias === undefined) {
       this.useBias = this.DEFAULT_USE_BIAS;
     }
-    this.activation = attrs.activation.toLowerCase();
-    if (this.activation === undefined) {
-      this.activation = this.DEFAULT_ACTIVATION;
-    }
+
+    this.activation = (attrs.activation ||
+      this.DEFAULT_ACTIVATION).toLowerCase();
     if (this.activation === "relu") {
       this.activationFunc = new ReLUFunc();
     } else if (this.activation === "sigmoid") {
@@ -67,15 +69,32 @@ export class Dense extends Layer {
     } else if (this.activation !== this.DEFAULT_ACTIVATION) {
       throw new Error("Unsupported activation type: " + this.activation);
     }
-    this.kernelInitializer = attrs.kernel_initializer.toLowerCase();
-    if (this.kernelInitializer === undefined) {
-      this.kernelInitializer = this.DEFAULT_KERNEL_INITIALIZER;
-    }
-    if (this.kernelInitializer == "glorot_initializer") {
-      this.kernelInitializerObject = new RandomUniformInitializer();
-    } else if (this.kernelInitializer == "glorot_uniform") {
 
+    this.kernelInitializer = (attrs.kernel_initializer ||
+      this.DEFAULT_KERNEL_INITIALIZER).toLowerCase();
+    console.log("this.kernelInitializer =", this.kernelInitializer); // DEBUG
+    if (this.kernelInitializer === "glorot_uniform") {
+      this.kernelInitializerObject = new VarianceScalingInitializer(
+        1.0, "fan_avg", "uniform");
+    } else if (this.kernelInitializer === "glorot_normal") {
+      this.kernelInitializerObject = new VarianceScalingInitializer(
+        1.0, "fan_avg", "normal");
+    } else if (this.kernelInitializer === "zeros") {
+      this.kernelInitializerObject = new ZerosInitializer();
+    } else {
+      throw new Error(
+        "Unsupporte kernel initializer: " + this.kernelInitializer);
     }
+
+    this.biasInitializer = (attrs.bias_initializer ||
+      this.DEFAULT_BIAS_INITIALIZER).toLowerCase();
+    if (this.biasInitializer === "zeros") {
+      this.biasInitializerObject = new ZerosInitializer();
+    } else {
+      throw new Error(
+        "Unsupported bias initializer: " + this.biasInitializer);
+    }
+
     this.kernelRegularizer = attrs.kernel_regularizer;
     this.biasRegularizer = attrs.bias_regularizer;
     this.activityRegularizer = attrs.activity_regularizer;
@@ -93,11 +112,14 @@ export class Dense extends Layer {
     if (this.kernel === undefined) {
       // Lazy initialization of the kernel and bias.
       this.inputLastDim = x.shape[x.shape.length - 1];
-      this.kernel = Array2D.zeros([this.inputLastDim, this.units]);
-      // TODO(cais): Use this.kernel_initializer.
+      this.kernel = this.kernelInitializerObject.initialize(
+        [this.inputLastDim, this.units],
+        this.inputLastDim, this.units) as Array2D;
 
       if (this.useBias) {
         this.bias = Array2D.zeros([1, this.units]);
+        this.bias = this.biasInitializerObject.initialize(
+          [1, this.units], this.inputLastDim, this.units) as Array2D;
       }
     } else {
       // Check for shape mismatch.
