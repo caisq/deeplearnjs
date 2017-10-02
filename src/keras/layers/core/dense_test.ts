@@ -19,7 +19,7 @@ import { NDArrayMathGPU } from '../../../math/math_gpu';
 import { Dense } from './dense';
 import { Array2D, NDArray } from '../../../math/ndarray';
 
-describe('Dense Layer Test', () => {
+describe('Keras Dense Layer Test', () => {
   let math: NDArrayMathGPU;
   beforeEach(() => {
     math = new NDArrayMathGPU();

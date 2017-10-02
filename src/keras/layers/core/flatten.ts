@@ -15,16 +15,22 @@
  * =============================================================================
  */
 
-import { NDArray } from '../math/ndarray';
-import { NDArrayMath } from '../math/math';
+import { Layer } from '../../layer';
+import { NDArray } from '../../../math/ndarray';
+import { NDArrayMath } from '../../../math/math';
 
-export class Layer {
-  // tslint:disable-next-line:no-any
-  constructor(attrs: any) {
+export class Flatten extends Layer {
+  constructor() {
+    super({});
   }
 
   // TOOD(cais): Move math object to keras.backend.
   call(math: NDArrayMath, x: NDArray): NDArray {
-    return x;
+    let numelExcludingFirst = 1;
+    // First dimension (batch) is excluded during Flatten calls.
+    for (let i = 1; i < x.shape.length; ++i) {
+      numelExcludingFirst *= x.shape[i];
+    }
+    return x.reshape([x.shape[1], numelExcludingFirst]);
   }
 }
