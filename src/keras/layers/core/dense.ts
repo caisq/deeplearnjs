@@ -19,6 +19,7 @@ import { NDArray, Array2D } from '../../../math/ndarray';
 import { NDArrayMath } from '../../../math/math';
 import { ActivationFunction, ReLUFunc, SigmoidFunc, TanHFunc } from
   '../../../math/activation_functions';
+import { Initializer, RandomUniformInitializer } from '../../../initializers'
 import { Layer } from '../../layer';
 
 export class Dense extends Layer {
@@ -36,10 +37,12 @@ export class Dense extends Layer {
 
   private readonly DEFAULT_ACTIVATION: string = "linear";
   private readonly DEFAULT_USE_BIAS: boolean = true;
+  private readonly DEFAULT_KERNEL_INITIALIZER = "glorot_uniform";
 
   private inputLastDim: number;
   private kernel: Array2D;  // TODO(cais): Handle other ranks.
   private bias: Array2D;
+  private kernelInitializerObject: Initializer;
   private activationFunc: ActivationFunction;
 
   // tslint:disable-next-line:no-any
@@ -51,21 +54,28 @@ export class Dense extends Layer {
     if (this.useBias === undefined) {
       this.useBias = this.DEFAULT_USE_BIAS;
     }
-    this.activation = attrs.activation;
+    this.activation = attrs.activation.toLowerCase();
     if (this.activation === undefined) {
       this.activation = this.DEFAULT_ACTIVATION;
     }
-    if (this.activation.toLowerCase() === "relu") {
+    if (this.activation === "relu") {
       this.activationFunc = new ReLUFunc();
-    } else if (this.activation.toLowerCase() === "sigmoid") {
+    } else if (this.activation === "sigmoid") {
       this.activationFunc = new SigmoidFunc();
-    } else if (this.activation.toLowerCase() === "tanh") {
+    } else if (this.activation === "tanh") {
       this.activationFunc = new TanHFunc();
     } else if (this.activation !== this.DEFAULT_ACTIVATION) {
       throw new Error("Unsupported activation type: " + this.activation);
     }
-    this.kernelInitializer = attrs.kernel_initializer;
-    this.biasInitializer = attrs.bias_initializer;
+    this.kernelInitializer = attrs.kernel_initializer.toLowerCase();
+    if (this.kernelInitializer === undefined) {
+      this.kernelInitializer = this.DEFAULT_KERNEL_INITIALIZER;
+    }
+    if (this.kernelInitializer == "glorot_initializer") {
+      this.kernelInitializerObject = new RandomUniformInitializer();
+    } else if (this.kernelInitializer == "glorot_uniform") {
+
+    }
     this.kernelRegularizer = attrs.kernel_regularizer;
     this.biasRegularizer = attrs.bias_regularizer;
     this.activityRegularizer = attrs.activity_regularizer;
