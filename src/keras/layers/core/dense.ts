@@ -19,8 +19,9 @@ import { NDArray, Array2D } from '../../../math/ndarray';
 import { NDArrayMath } from '../../../math/math';
 import { ActivationFunction, ReLUFunc, SigmoidFunc, TanHFunc } from
   '../../../math/activation_functions';
-import { Initializer, VarianceScalingInitializer, ZerosInitializer } from
-  '../../../initializers';
+import {
+  Initializer, VarianceScalingInitializer, ZerosInitializer, OnesInitializer
+} from '../../../initializers';
 import { Layer } from '../../layer';
 
 export class Dense extends Layer {
@@ -72,7 +73,6 @@ export class Dense extends Layer {
 
     this.kernelInitializer = (attrs.kernel_initializer ||
       this.DEFAULT_KERNEL_INITIALIZER).toLowerCase();
-    console.log("this.kernelInitializer =", this.kernelInitializer); // DEBUG
     if (this.kernelInitializer === "glorot_uniform") {
       this.kernelInitializerObject = new VarianceScalingInitializer(
         1.0, "fan_avg", "uniform");
@@ -81,6 +81,8 @@ export class Dense extends Layer {
         1.0, "fan_avg", "normal");
     } else if (this.kernelInitializer === "zeros") {
       this.kernelInitializerObject = new ZerosInitializer();
+    } else if (this.kernelInitializer === "ones") {
+      this.kernelInitializerObject = new OnesInitializer();
     } else {
       throw new Error(
         "Unsupporte kernel initializer: " + this.kernelInitializer);
@@ -90,6 +92,8 @@ export class Dense extends Layer {
       this.DEFAULT_BIAS_INITIALIZER).toLowerCase();
     if (this.biasInitializer === "zeros") {
       this.biasInitializerObject = new ZerosInitializer();
+    } else if (this.biasInitializer === "ones") {
+      this.biasInitializerObject = new OnesInitializer();
     } else {
       throw new Error(
         "Unsupported bias initializer: " + this.biasInitializer);
@@ -101,6 +105,7 @@ export class Dense extends Layer {
     this.kernelConstraint = attrs.kernel_constraint;
     this.biasConstraint = attrs.bias_constraint;
 
+    // TODO(cais): Check for extraneous items in attrs.
     // TODO(cais): Implement regularizers and constraints.
   }
 
