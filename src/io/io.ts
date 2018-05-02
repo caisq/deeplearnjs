@@ -16,6 +16,7 @@
  */
 
 import {files, triggerDownloads} from './files';
+import {browserIndexedDB} from './indexed_db';
 import {decodeWeights, encodeWeights} from './io_utils';
 import {browserLocalStorage} from './local_storage';
 // tslint:disable-next-line:max-line-length
@@ -23,6 +24,7 @@ import {IOHandler, LoadHandler, ModelArtifacts, SaveConfig, SaveHandler, SaveRes
 import {loadWeights} from './weights_loader';
 
 export {
+  browserIndexedDB,
   browserLocalStorage,
   decodeWeights,
   encodeWeights,
