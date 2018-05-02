@@ -117,7 +117,8 @@ describe('LocalStorage', () => {
               .toEqual(JSON.stringify(modelTopology1).length);
           expect(saveResult.modelArtifactsInfo.weightSpecsBytes)
               .toEqual(JSON.stringify(weightSpecs1).length);
-          expect(saveResult.modelArtifactsInfo.weightDataBytes).toEqual(16);
+          expect(saveResult.modelArtifactsInfo.weightDataBytes)
+              .toEqual(weightData1.byteLength);
 
           // Check the content of the saved items in local storage.
           const LS = window.localStorage;
