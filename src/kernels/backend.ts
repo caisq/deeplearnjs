@@ -116,6 +116,14 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented');
   }
 
+  onesLike(x: Tensor): Tensor {
+    throw new Error('Not yet implemented');
+  }
+
+  zerosLike(x: Tensor): Tensor {
+    throw new Error('Not yet implemented');
+  }
+
   batchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean,
       transposeB: boolean): Tensor3D {

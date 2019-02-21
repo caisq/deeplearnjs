@@ -641,6 +641,10 @@ export class MathBackendWebGL implements KernelBackend {
     return resultData.complexTensors.imag.clone() as T;
   }
 
+  onesLike(x: Tensor): Tensor {
+
+  }
+
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
       return this.cpuBackend.slice(x, begin, size);

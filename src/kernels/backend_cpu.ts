@@ -248,6 +248,14 @@ export class MathBackendCPU implements KernelBackend {
     });
   }
 
+  onesLike(x: Tensor): Tensor {
+    return ops.ones(x.shape, x.dtype);
+  }
+
+  zerosLike(x: Tensor): Tensor {
+    return ops.zeros(x.shape, x.dtype);
+  }
+
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     this.assertNotComplex(x, 'slice');
 
