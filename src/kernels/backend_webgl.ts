@@ -35,7 +35,7 @@ import {range, scalar, tensor} from '../ops/tensor_ops';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
-import {getTypedArrayFromDType, sizeFromShape} from '../util';
+import {getArrayFromDType, getTypedArrayFromDType, sizeFromShape} from '../util';
 
 import {DataMover, DataStorage, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
@@ -641,9 +641,17 @@ export class MathBackendWebGL implements KernelBackend {
     return resultData.complexTensors.imag.clone() as T;
   }
 
-  onesLike(x: Tensor): Tensor {
-
+  zerosLike(x: Tensor): Tensor {
+    if (x.dtype === 'string') {
+      const values = getArrayFromDType(x.dtype, sizeFromShape(x.shape));
+      values.fill('');
+      return Tensor.make(x.shape, {values}, x.dtype);
+    } else {
+      const program = new FillProgram(x.shape, 0);
+      
+    }
   }
+
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
