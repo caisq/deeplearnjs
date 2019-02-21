@@ -647,11 +647,10 @@ export class MathBackendWebGL implements KernelBackend {
       values.fill('');
       return Tensor.make(x.shape, {values}, x.dtype);
     } else {
-      const program = new FillProgram(x.shape, 0);
       
+
     }
   }
-
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
