@@ -48,7 +48,9 @@ export interface SGDOptimizerArgs{
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'SGDOptimizer';
+  static className = 'SGD';
+  // This must be compatible with keras and tf.keras in Python.
+
   protected learningRate: number;
   protected c: Scalar;
 
