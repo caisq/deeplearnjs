@@ -23,14 +23,55 @@ import {Scalar} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 
+export interface SGDOptimizerArgs{
+  /**
+   * TODO(cais): Add doc string.
+   */
+  learningRate: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  nesterov: boolean;
+  
+  /**
+   * TODO(cais): Add doc string.
+   */
+  momentum: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  decay: number;
+};
+
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
   static className = 'SGDOptimizer';
+  protected learningRate: number;
   protected c: Scalar;
 
-  constructor(protected learningRate: number) {
+  constructor(learningRateOrConfig: number | SGDOptimizerArgs) {
     super();
+    let learningRate: number;
+    if (typeof learningRateOrConfig === 'number') {
+      learningRate = learningRateOrConfig;
+    } else {
+      learningRate = learningRateOrConfig.learningRate;
+      if (learningRateOrConfig.nesterov) {
+        throw new Error('nesterov in SGDOptimizer is not implemented yet.');
+      }
+      if (learningRateOrConfig.momentum != null &&
+          learningRateOrConfig.momentum !== 0) {
+        throw new Error('SGDOptimizer does not support non-zero momentum yet.');
+      }
+      if (learningRateOrConfig.decay != null &&
+          learningRateOrConfig.decay !== 0) {
+        throw new Error('SGDOptimizer does not support non-zero decay yet.');
+      }
+    }
+
     this.setLearningRate(learningRate);
   }
 
@@ -63,7 +104,14 @@ export class SGDOptimizer extends Optimizer {
   }
 
   getConfig(): ConfigDict {
-    return {learningRate: this.learningRate};
+    const config = super.getConfig();
+    // 
+    return Object.assign(config, {
+      nesterov: 'false',
+      momentum: 0,
+      decay: 0,
+      learningRate: this.learningRate
+    });
   }
 
   /** @nocollapse */

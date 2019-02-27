@@ -16,7 +16,7 @@
  */
 
 import {variableGrads} from '../globals';
-import {Serializable} from '../serialization';
+import {ConfigDict, Serializable} from '../serialization';
 import {Scalar, Variable} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
@@ -80,6 +80,10 @@ export abstract class Optimizer extends Serializable {
    * Dispose the variables (if any) owned by this optimizer instance.
    */
   dispose(): void {}
+
+  getConfig(): ConfigDict {
+    return {name: this.getClassName()};
+  }
 }
 
 Object.defineProperty(Optimizer, Symbol.hasInstance, {
