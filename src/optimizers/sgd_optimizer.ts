@@ -32,18 +32,18 @@ export interface SGDOptimizerArgs{
   /**
    * TODO(cais): Add doc string.
    */
-  nesterov: boolean;
-  
-  /**
-   * TODO(cais): Add doc string.
-   */
-  momentum: number;
+  nesterov?: boolean;
 
   /**
    * TODO(cais): Add doc string.
    */
-  decay: number;
-};
+  momentum?: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  decay?: number;
+}
 
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
@@ -105,9 +105,8 @@ export class SGDOptimizer extends Optimizer {
 
   getConfig(): ConfigDict {
     const config = super.getConfig();
-    // 
     return Object.assign(config, {
-      nesterov: 'false',
+      nesterov: false,
       momentum: 0,
       decay: 0,
       learningRate: this.learningRate

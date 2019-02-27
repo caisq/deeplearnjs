@@ -54,6 +54,24 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
     // The only tensor remaining is the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
   });
+  fit('getConfig(): Constructor with learning-rate number arg', () => {
+    const learningRate = 0.02;
+    const optimizer = tf.train.sgd(learningRate);
+    const config = optimizer.getConfig();
+    expect(config.learningRate).toEqual(0.02);
+    expect(config.nesterov).toEqual(false);
+    expect(config.momentum).toEqual(0);
+    expect(config.decay).toEqual(0);
+  });
+  fit('getConfig(): Constructor with object arguments', () => {
+    const learningRate = 0.02;
+    const optimizer = tf.train.sgd({learningRate});
+    const config = optimizer.getConfig();
+    expect(config.learningRate).toEqual(0.02);
+    expect(config.nesterov).toEqual(false);
+    expect(config.momentum).toEqual(0);
+    expect(config.decay).toEqual(0);
+  });
   it('serialization round-trip', () => {
     const learningRate = .1;
     const originalOpt = tf.train.sgd(learningRate);
