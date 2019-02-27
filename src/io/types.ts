@@ -100,6 +100,14 @@ export interface SaveConfig {
    * untrainable ones.
    */
   trainableOnly?: boolean;
+
+  /**
+   * Whether to include the optimizer, its weights, and associated training
+   * states (if any), in addition to the model's topology and weights.
+   * 
+   * Default: `true`.
+   */
+  includeOptimizer?: boolean;
 }
 
 /**

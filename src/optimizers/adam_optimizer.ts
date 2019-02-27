@@ -23,9 +23,43 @@ import {Scalar, Variable} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 
+export interface SGDOptimizerArgs{
+  /**
+   * TODO(cais): Add doc string.
+   */
+  learningRate?: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  beta1?: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  beta2?: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  epsilon?: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  decay?: number;
+
+  /**
+   * TODO(cais): Add doc string.
+   */
+  amsgrad?: boolean;
+}
+
 export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'AdamOptimizer';
+  static className = 'Adam';
+  // This must be compatible with keras and tf.keras in Python.
+
   private c: Scalar;
   private epsScalar: Scalar;
   private beta1Scalar: Scalar;
@@ -72,13 +106,15 @@ export class AdamOptimizer extends Optimizer {
         const value = ENV.engine.registeredVariables[variableName];
         if (this.accumulatedFirstMoment[variableName] == null) {
           const trainable = false;
-          this.accumulatedFirstMoment[variableName] =
-              zerosLike(value).variable(trainable);
+          const firstMoment = zerosLike(value).variable(trainable);
+          this.accumulatedFirstMoment[variableName] = firstMoment;
+          this.addWeight(firstMoment);
         }
         if (this.accumulatedSecondMoment[variableName] == null) {
           const trainable = false;
-          this.accumulatedSecondMoment[variableName] =
-              zerosLike(value).variable(trainable);
+          const secondMoment = zerosLike(value).variable(trainable);
+          this.accumulatedSecondMoment[variableName] = secondMoment;
+          this.addWeight(secondMoment);
         }
 
         const gradient = variableGradients[variableName];
@@ -137,6 +173,8 @@ export class AdamOptimizer extends Optimizer {
       beta1: this.beta1,
       beta2: this.beta2,
       epsilon: this.epsilon,
+      decay: 0,
+      amsrgad: false
     };
   }
 

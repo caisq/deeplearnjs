@@ -22,6 +22,8 @@ import {NamedTensorMap} from '../tensor_types';
 
 /** @doc {heading: 'Training', subheading: 'Classes', namespace: 'train'} */
 export abstract class Optimizer extends Serializable {
+  private weights: Variable[] = [];
+
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
@@ -75,6 +77,10 @@ export abstract class Optimizer extends Serializable {
    * @param variableGradients A mapping of variable name to its gradient value.
    */
   abstract applyGradients(variableGradients: NamedTensorMap): void;
+
+  addWeight(weight: Variable): void {
+    this.weights.push(weight);
+  }
 
   /**
    * Dispose the variables (if any) owned by this optimizer instance.
