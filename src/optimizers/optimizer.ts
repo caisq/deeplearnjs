@@ -15,14 +15,24 @@
  * =============================================================================
  */
 
-import {variableGrads} from '../globals';
+import {tidy, variableGrads} from '../globals';
+import {scalar} from '../ops/ops';
 import {ConfigDict, Serializable} from '../serialization';
-import {Scalar, Variable} from '../tensor';
+import {Scalar, Variable, Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
 /** @doc {heading: 'Training', subheading: 'Classes', namespace: 'train'} */
 export abstract class Optimizer extends Serializable {
-  private weights: Variable[] = [];
+  protected weights: Variable[];
+  protected step: Variable;
+
+  constructor() {
+    super();
+    this.weights = [];
+
+    this.step = tidy(() => scalar(0).variable(false, null, 'int32'));
+    this.addWeight(this.step);
+  }
 
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
@@ -39,6 +49,8 @@ export abstract class Optimizer extends Serializable {
   /** @doc {heading: 'Training', subheading: 'Optimizers'} */
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
+    tidy(() => this.step.assign(this.step.add(scalar(1, 'int32'))));
+
     const {value, grads} = this.computeGradients(f, varList);
 
     this.applyGradients(grads);
@@ -80,6 +92,10 @@ export abstract class Optimizer extends Serializable {
 
   addWeight(weight: Variable): void {
     this.weights.push(weight);
+  }
+
+  getWeights(): Tensor[] {
+    return this.weights;
   }
 
   /**

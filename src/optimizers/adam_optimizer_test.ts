@@ -17,6 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
+import {scalar} from '../ops/ops';
 import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
@@ -76,13 +77,40 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
     x.dispose();
     optimizer.dispose();
 
-    // The only tensor remaining should be the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The two tensors remaining should be the argument to variable()
+    // and the step variable.
+    expect(tf.memory().numTensors).toBe(2);
   });
   it('serialization round-trip', () => {
     const originalOpt = tf.train.adam(0.1, 0.2, 0.3, 2e-8);
     const reserialized =
         tf.AdamOptimizer.fromConfig(tf.AdamOptimizer, originalOpt.getConfig());
     expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
+  });
+  it('getWeights', () => {
+    const learningRate = .1;
+    const beta1 = .8;
+    const beta2 = .9;
+    const optimizer = tf.train.adam(learningRate, beta1, beta2);
+
+    const x1 = tf.tensor1d([2, 4, 6]).variable();
+    const x2 = tf.scalar(8).variable();
+    const f = () => x1.add(x2).square().sum() as tf.Scalar;
+    optimizer.minimize(f);
+    optimizer.minimize(f);
+
+    const weights = optimizer.getWeights();
+    expect(weights.length).toEqual(5);  // TODO(cais): Is this right?
+    // The number of times `minimize()` was called should be reflected
+    // in the 1st (steps) variable.
+    expectArraysClose(weights[0], scalar(2, 'int32'));
+    // 1st momentum of variable x1.
+    expect(weights[1].shape).toEqual([3]);
+    // 1st momentum of variable x2.
+    expect(weights[2].shape).toEqual([]);
+    // 2nd momentum of variable x1.
+    expect(weights[3].shape).toEqual([3]);
+    // 2nd momentum of variable x2.
+    expect(weights[4].shape).toEqual([]);
   });
 });

@@ -58,7 +58,7 @@ export interface SGDOptimizerArgs{
 export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
   static className = 'Adam';
-  // This must be compatible with keras and tf.keras in Python.
+  // This name must be compatible with keras and tf.keras in Python.
 
   private c: Scalar;
   private epsScalar: Scalar;
@@ -102,19 +102,16 @@ export class AdamOptimizer extends Optimizer {
       const oneMinusAccBeta1 = this.one.sub(this.accBeta1);
       const oneMinusAccBeta2 = this.one.sub(this.accBeta2);
 
+      let firstTime = false;
       for (const variableName in variableGradients) {
         const value = ENV.engine.registeredVariables[variableName];
         if (this.accumulatedFirstMoment[variableName] == null) {
+          firstTime = true;
           const trainable = false;
-          const firstMoment = zerosLike(value).variable(trainable);
-          this.accumulatedFirstMoment[variableName] = firstMoment;
-          this.addWeight(firstMoment);
-        }
-        if (this.accumulatedSecondMoment[variableName] == null) {
-          const trainable = false;
-          const secondMoment = zerosLike(value).variable(trainable);
-          this.accumulatedSecondMoment[variableName] = secondMoment;
-          this.addWeight(secondMoment);
+          this.accumulatedFirstMoment[variableName] =
+              zerosLike(value).variable(trainable);
+          this.accumulatedSecondMoment[variableName] =
+              zerosLike(value).variable(trainable);
         }
 
         const gradient = variableGradients[variableName];
@@ -139,6 +136,15 @@ export class AdamOptimizer extends Optimizer {
                     this.epsScalar.add(biasCorrectedSecondMoment.sqrt())))
                 .add(value);
         value.assign(newValue);
+      }
+
+      if (firstTime) {
+        for (const variableName in variableGradients) {
+          this.addWeight(this.accumulatedFirstMoment[variableName]);
+        }
+        for (const variableName in variableGradients) {
+          this.addWeight(this.accumulatedSecondMoment[variableName]);
+        }
       }
 
       this.accBeta1.assign(this.accBeta1.mul(this.beta1Scalar));
