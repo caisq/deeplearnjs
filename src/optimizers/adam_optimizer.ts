@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../environment';
-import {keep, tidy} from '../globals';
+import {keep, tidy, dispose} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar, Variable} from '../tensor';
@@ -70,8 +70,9 @@ export class AdamOptimizer extends Optimizer {
   private oneMinusBeta2: Scalar;
   private one: Scalar;
 
-  private accumulatedFirstMoment: NamedVariableMap = {};
-  private accumulatedSecondMoment: NamedVariableMap = {};
+  // TODO(cais): Clean up.
+  // private accumulatedFirstMoment: NamedVariableMap = {};
+  // private accumulatedSecondMoment: NamedVariableMap = {};
 
   constructor(
       protected learningRate: number, protected beta1: number,
@@ -97,26 +98,57 @@ export class AdamOptimizer extends Optimizer {
     this.epsScalar = keep(scalar(epsilon));
   }
 
+  private initializeWeights(variableGradients: NamedVariableMap) {
+    console.log('In initializeWeights');  // DEBUG
+    tidy(() => {
+      const step = scalar(0).variable(false, null, 'int32');
+      this.addWeight(step);
+
+      const accumulatedFirstMoment: NamedVariableMap = {};
+      const accumulatedSecondMoment: NamedVariableMap = {};
+      for (const variableName in variableGradients) {
+        const value = ENV.engine.registeredVariables[variableName];
+        if (accumulatedFirstMoment[variableName] == null) {
+          const trainable = false;
+          accumulatedFirstMoment[variableName] =
+              zerosLike(value).variable(trainable);
+          accumulatedSecondMoment[variableName] =
+              zerosLike(value).variable(trainable);
+        }
+      }
+      for (const variableName in variableGradients) {
+        this.addWeight(accumulatedFirstMoment[variableName]);
+      }
+      for (const variableName in variableGradients) {
+        this.addWeight(accumulatedSecondMoment[variableName]);
+      }
+    });
+  }
+
+  // setWeights(weights: Tensor[]): void {
+  //   super.setWeights(weights);
+  //   dispose(this.accumulatedFirstMoment);
+  //   dispose(this.accumulatedSecondMoment);
+  // }
+
   applyGradients(variableGradients: NamedVariableMap) {
+    if (this.weights == null) {
+      this.initializeWeights(variableGradients);
+    }
+
     tidy(() => {
       const oneMinusAccBeta1 = this.one.sub(this.accBeta1);
       const oneMinusAccBeta2 = this.one.sub(this.accBeta2);
 
-      let firstTime = false;
+      let i = 0;
       for (const variableName in variableGradients) {
-        const value = ENV.engine.registeredVariables[variableName];
-        if (this.accumulatedFirstMoment[variableName] == null) {
-          firstTime = true;
-          const trainable = false;
-          this.accumulatedFirstMoment[variableName] =
-              zerosLike(value).variable(trainable);
-          this.accumulatedSecondMoment[variableName] =
-              zerosLike(value).variable(trainable);
-        }
+        const value = ENV.engine.registeredVariables[variableName];        
 
         const gradient = variableGradients[variableName];
-        const firstMoment = this.accumulatedFirstMoment[variableName];
-        const secondMoment = this.accumulatedSecondMoment[variableName];
+        // const firstMoment = this.accumulatedFirstMoment[variableName];
+        // const secondMoment = this.accumulatedSecondMoment[variableName];
+        const firstMoment = this.weights[i + 1];
+        const secondMoment = this.weights[2 * i + 1];
 
         const newFirstMoment = this.beta1Scalar.mul(firstMoment)
                                    .add(this.oneMinusBeta1.mul(gradient));
@@ -127,8 +159,10 @@ export class AdamOptimizer extends Optimizer {
         const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
         const biasCorrectedSecondMoment = newSecondMoment.div(oneMinusAccBeta2);
 
-        this.accumulatedFirstMoment[variableName].assign(newFirstMoment);
-        this.accumulatedSecondMoment[variableName].assign(newSecondMoment);
+        // this.accumulatedFirstMoment[variableName].assign(newFirstMoment);
+        // this.accumulatedSecondMoment[variableName].assign(newSecondMoment);
+        firstMoment.assign(newFirstMoment);
+        secondMoment.assign(newSecondMoment);
 
         const newValue =
             this.c
@@ -138,17 +172,12 @@ export class AdamOptimizer extends Optimizer {
         value.assign(newValue);
       }
 
-      if (firstTime) {
-        for (const variableName in variableGradients) {
-          this.addWeight(this.accumulatedFirstMoment[variableName]);
-        }
-        for (const variableName in variableGradients) {
-          this.addWeight(this.accumulatedSecondMoment[variableName]);
-        }
-      }
-
       this.accBeta1.assign(this.accBeta1.mul(this.beta1Scalar));
       this.accBeta2.assign(this.accBeta2.mul(this.beta2Scalar));
+
+      const step = this.weights[0];
+      step.assign(step.add(scalar(1, 'int32')));
+      i++;
     });
   }
 
@@ -163,15 +192,16 @@ export class AdamOptimizer extends Optimizer {
     this.oneMinusBeta2.dispose();
     this.one.dispose();
 
-    if (this.accumulatedFirstMoment != null) {
-      Object.keys(this.accumulatedFirstMoment)
-          .forEach(name => this.accumulatedFirstMoment[name].dispose());
-    }
+    dispose(this.weights);
+    // if (this.accumulatedFirstMoment != null) {
+    //   Object.keys(this.accumulatedFirstMoment)
+    //       .forEach(name => this.accumulatedFirstMoment[name].dispose());
+    // }
 
-    if (this.accumulatedSecondMoment != null) {
-      Object.keys(this.accumulatedSecondMoment)
-          .forEach(name => this.accumulatedSecondMoment[name].dispose());
-    }
+    // if (this.accumulatedSecondMoment != null) {
+    //   Object.keys(this.accumulatedSecondMoment)
+    //       .forEach(name => this.accumulatedSecondMoment[name].dispose());
+    // }
   }
   getConfig(): ConfigDict {
     return {
@@ -187,6 +217,12 @@ export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
+    if (config.decay != null && config.decay !== 0) {
+      throw new Error('decay in AdamOptimizer is not implemented yet.');
+    }
+    if (config.amsgrad) {
+      throw new Error('amsgrad in AdamOptimizer is not implemented yet.');
+    }
     return new cls(
         config.learningRate, config.beta1, config.beta2, config.epsilon);
   }

@@ -113,4 +113,52 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
     // 2nd momentum of variable x2.
     expect(weights[4].shape).toEqual([]);
   });
+  fit('setWeights', () => {
+    console.log('==== BEGIN ====');  // DEBUG
+    const learningRate = .1;
+    const beta1 = .8;
+    const beta2 = .9;
+    const optimizer1 = tf.train.adam(learningRate, beta1, beta2);
+
+    const x1 = tf.tensor1d([2, 4, 6]).variable();
+    console.log('10 x1:');
+    x1.print();
+
+    const f1 = () => x1.square().sum() as tf.Scalar;
+
+    // Call optimizer twice on f1.
+    optimizer1.minimize(f1);
+    optimizer1.minimize(f1);
+
+    const x2 = x1.variable();
+    const f2 = () => x2.square().sum() as tf.Scalar;
+
+    // Set optimizer2's weights to the same as optimizer1.
+    const weights1 = optimizer1.getWeights();
+    expect(weights1.length).toEqual(3);  // Step and two moments.
+    const optimizer2 = tf.train.adam(learningRate, beta1, beta2);
+    // optimizer2.setWeights(weights1);
+
+    const returnCost = true;
+    const loss1 = optimizer1.minimize(f1, returnCost);
+    loss1.print();  // DEBUG
+  
+    const loss2 = optimizer2.minimize(f2, returnCost);
+    console.log('30 x1:');
+    x1.print();
+    console.log('30 x2:');
+    x2.print();
+    loss2.print();  // DEBUG
+
+    expectArraysClose(loss1, loss2);
+    // step count shold be the same.
+    expectArraysClose(optimizer1.getWeights()[0], optimizer2.getWeights()[0]);
+    // Weights should be the same.
+    expectArraysClose(optimizer1.getWeights()[1], optimizer2.getWeights()[1]);
+    expectArraysClose(optimizer1.getWeights()[2], optimizer2.getWeights()[2]);
+    // optimizer1.getWeights()[1].print();
+    // optimizer1.getWeights()[2].print();
+    // optimizer2.getWeights()[1].print();
+    // optimizer2.getWeights()[2].print();
+  });
 });

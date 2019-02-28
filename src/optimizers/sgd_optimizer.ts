@@ -118,6 +118,15 @@ export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
+    if (config.nesterov) {
+      throw new Error('nesterov in SGDOptimizer is not implemented yet.');
+    }
+    if (config.momentum != null && config.momentum !== 0) {
+      throw new Error('SGDOptimizer does not support non-zero momentum yet.');
+    }
+    if (config.decay != null && config.decay !== 0) {
+      throw new Error('SGDOptimizer does not support non-zero decay yet.');
+    }
     return new cls(config.learningRate);
   }
 }

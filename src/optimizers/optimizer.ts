@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {tidy, variableGrads} from '../globals';
-import {scalar} from '../ops/ops';
+import {variableGrads} from '../globals';
 import {ConfigDict, Serializable} from '../serialization';
 import {Scalar, Variable, Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -24,14 +23,10 @@ import {NamedTensorMap} from '../tensor_types';
 /** @doc {heading: 'Training', subheading: 'Classes', namespace: 'train'} */
 export abstract class Optimizer extends Serializable {
   protected weights: Variable[];
-  protected step: Variable;
+  protected cachedWeights: Tensor[];
 
   constructor() {
     super();
-    this.weights = [];
-
-    this.step = tidy(() => scalar(0).variable(false, null, 'int32'));
-    this.addWeight(this.step);
   }
 
   /**
@@ -49,8 +44,6 @@ export abstract class Optimizer extends Serializable {
   /** @doc {heading: 'Training', subheading: 'Optimizers'} */
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
-    tidy(() => this.step.assign(this.step.add(scalar(1, 'int32'))));
-
     const {value, grads} = this.computeGradients(f, varList);
 
     this.applyGradients(grads);
@@ -91,11 +84,33 @@ export abstract class Optimizer extends Serializable {
   abstract applyGradients(variableGradients: NamedTensorMap): void;
 
   addWeight(weight: Variable): void {
+    if (this.weights == null) {
+      this.weights = [];
+    }
     this.weights.push(weight);
   }
 
   getWeights(): Tensor[] {
     return this.weights;
+  }
+
+  setWeights(weights: Tensor[]): void {
+    console.log('In setWeights()');  // DEBUG
+    if (this.weights == null) {
+      this.weights = weights.map(w => w.variable());
+    } else {
+      if (this.weights.length !== weights.length) {
+        throw new Error(
+            `Mismatch in the number of weights occurred during ` +
+            `${this.getClassName()}.setWeights(): the optimizer currently ` +
+            `has ${this.weights.length} weight(s), but ${weights.length} ` +
+            `weights are provided.`);
+      }
+      weights.forEach((w, i) => {
+        this.weights[i].dispose();
+        this.weights[i] = w.variable();
+      });
+    } 
   }
 
   /**
