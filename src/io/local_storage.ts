@@ -26,6 +26,8 @@ const PATH_SEPARATOR = '/';
 const PATH_PREFIX = 'tensorflowjs_models';
 const INFO_SUFFIX = 'info';
 const MODEL_TOPOLOGY_SUFFIX = 'model_topology';
+const TRAINING_CONFIG_SUFFIX = 'training_config';
+const CLIENT_METADATA_SUFFIX = 'client_metadata';
 const WEIGHT_SPECS_SUFFIX = 'weight_specs';
 const WEIGHT_DATA_SUFFIX = 'weight_data';
 const MODEL_METADATA_SUFFIX = 'model_metadata';
@@ -61,6 +63,8 @@ export function purgeLocalStorageArtifacts(): string[] {
 function getModelKeys(path: string): {
   info: string,
   topology: string,
+  trainingConfig: string,
+  clientMetadata: string,
   weightSpecs: string,
   weightData: string,
   modelMetadata: string
@@ -68,6 +72,10 @@ function getModelKeys(path: string): {
   return {
     info: [PATH_PREFIX, path, INFO_SUFFIX].join(PATH_SEPARATOR),
     topology: [PATH_PREFIX, path, MODEL_TOPOLOGY_SUFFIX].join(PATH_SEPARATOR),
+    trainingConfig:
+        [PATH_PREFIX, path, TRAINING_CONFIG_SUFFIX].join(PATH_SEPARATOR),
+    clientMetadata:
+        [PATH_PREFIX, path, CLIENT_METADATA_SUFFIX].join(PATH_SEPARATOR),
     weightSpecs: [PATH_PREFIX, path, WEIGHT_SPECS_SUFFIX].join(PATH_SEPARATOR),
     weightData: [PATH_PREFIX, path, WEIGHT_DATA_SUFFIX].join(PATH_SEPARATOR),
     modelMetadata:
@@ -99,6 +107,8 @@ function maybeStripScheme(key: string) {
 declare type LocalStorageKeys = {
   info: string,
   topology: string,
+  trainingConfig: string,
+  clientMetadata: string,
   weightSpecs: string,
   weightData: string,
   modelMetadata: string
@@ -170,6 +180,17 @@ export class BrowserLocalStorage implements IOHandler {
           convertedBy: modelArtifacts.convertedBy
         }));
 
+        if (modelArtifacts.trainingConfig != null) {
+          this.LS.setItem(
+              this.keys.trainingConfig,
+              JSON.stringify(modelArtifacts.trainingConfig));
+        }
+        if (modelArtifacts.clientMetadata != null) {
+          this.LS.setItem(
+              this.keys.clientMetadata,
+              JSON.stringify(modelArtifacts.clientMetadata));
+        }
+
         return {modelArtifactsInfo};
       } catch (err) {
         // If saving failed, clean up all items saved so far.
@@ -178,6 +199,8 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.removeItem(this.keys.weightSpecs);
         this.LS.removeItem(this.keys.weightData);
         this.LS.removeItem(this.keys.modelMetadata);
+        this.LS.removeItem(this.keys.trainingConfig);
+        this.LS.removeItem(this.keys.clientMetadata);
 
         throw new Error(
             `Failed to save model '${this.modelPath}' to local storage: ` +
@@ -249,6 +272,15 @@ export class BrowserLocalStorage implements IOHandler {
           `'${this.modelPath}' are missing.`);
     }
     out.weightData = base64StringToArrayBuffer(weightDataBase64);
+
+    const trainingConfig = this.LS.getItem(this.keys.trainingConfig);
+    if (trainingConfig != null) {
+      out.trainingConfig = trainingConfig;
+    }
+    const clientMetadata = this.LS.getItem(this.keys.clientMetadata);
+    if (clientMetadata != null) {
+      out.clientMetadata = clientMetadata;
+    }
 
     return out;
   }
@@ -336,6 +368,8 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
     this.LS.removeItem(keys.topology);
     this.LS.removeItem(keys.weightSpecs);
     this.LS.removeItem(keys.weightData);
+    this.LS.removeItem(keys.trainingConfig);
+    this.LS.removeItem(keys.clientMetadata);
     return info;
   }
 }

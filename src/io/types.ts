@@ -201,6 +201,16 @@ export declare interface ModelArtifacts {
   modelTopology?: {}|ArrayBuffer;
 
   /**
+   * Training configuration of the model (optional).
+   */
+  trainingConfig?: {};
+
+  /**
+   * Metadata supplied by the client.
+   */
+  clientMetadata?: {};
+
+  /**
    * Weight specifications.
    *
    * This corresponds to the weightsData below.
@@ -264,6 +274,21 @@ export declare interface ModelJSON {
    * `WeightsManifestConfig` for more details.
    */
   weightsManifest: WeightsManifestConfig;
+
+  /**
+   * Training configuration.
+   *
+   * This field supports saving a model with its training state, including but
+   * not limited to: loss, optimizer, metrics.
+   */
+  trainingConfig?: {};
+
+  /**
+   * Metadata that accompanies the model set by the client.
+   *
+   * TensorFlow.js will never store data in this field.
+   */
+  clientMetadata?: {};
 
   /**
    * Hard-coded format name for models saved from TensorFlow.js or converted

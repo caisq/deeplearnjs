@@ -25,10 +25,13 @@ class PassthroughLoader implements IOHandler {
   constructor(
       private readonly modelTopology?: {}|ArrayBuffer,
       private readonly weightSpecs?: WeightsManifestEntry[],
-      private readonly weightData?: ArrayBuffer) {}
+      private readonly weightData?: ArrayBuffer,
+      private readonly trainingConfig?: {},
+      private readonly clientMetadata?: {},
+  ) {}
 
   async load(): Promise<ModelArtifacts> {
-    let result = {};
+    let result: ModelArtifacts = {};
     if (this.modelTopology != null) {
       result = {modelTopology: this.modelTopology, ...result};
     }
@@ -37,6 +40,12 @@ class PassthroughLoader implements IOHandler {
     }
     if (this.weightData != null && this.weightData.byteLength > 0) {
       result = {weightData: this.weightData, ...result};
+    }
+    if (this.trainingConfig != null) {
+      result.trainingConfig = this.trainingConfig;
+    }
+    if (this.clientMetadata != null) {
+      result.clientMetadata = this.clientMetadata;
     }
     return result;
   }

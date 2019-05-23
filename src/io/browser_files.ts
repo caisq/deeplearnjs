@@ -82,6 +82,14 @@ export class BrowserDownloads implements IOHandler {
         convertedBy: modelArtifacts.convertedBy,
         weightsManifest
       };
+      if (modelArtifacts.trainingConfig != null) {
+        modelTopologyAndWeightManifest.trainingConfig =
+            modelArtifacts.trainingConfig;
+      }
+      if (modelArtifacts.clientMetadata != null) {
+        modelTopologyAndWeightManifest.clientMetadata =
+            modelArtifacts.clientMetadata;
+      }
       const modelTopologyAndWeightManifestURL =
           window.URL.createObjectURL(new Blob(
               [JSON.stringify(modelTopologyAndWeightManifest)],
@@ -181,11 +189,18 @@ class BrowserFiles implements IOHandler {
               const index = paths.indexOf(path);
               perFileBuffers[index] = weightData;
               if (perFileBuffers.indexOf(null) === -1) {
-                resolve({
+                const artifacts: ModelArtifacts = {
                   modelTopology,
                   weightSpecs,
                   weightData: concatenateArrayBuffers(perFileBuffers),
-                });
+                };
+                if (modelJSON.trainingConfig != null) {
+                  artifacts.trainingConfig = modelJSON.trainingConfig;
+                }
+                if (modelJSON.clientMetadata != null) {
+                  artifacts.clientMetadata = modelJSON.clientMetadata;
+                }
+                resolve(artifacts);
               }
             };
             weightFileReader.onerror = error =>

@@ -102,6 +102,14 @@ export class HTTPRequest implements IOHandler {
       convertedBy: modelArtifacts.convertedBy,
       weightsManifest
     };
+    if (modelArtifacts.trainingConfig != null) {
+      modelTopologyAndWeightManifest.trainingConfig =
+          modelArtifacts.trainingConfig;
+    }
+    if (modelArtifacts.clientMetadata != null) {
+      modelTopologyAndWeightManifest.clientMetadata =
+          modelArtifacts.clientMetadata;
+    }
 
     init.body.append(
         'model.json',
@@ -148,9 +156,9 @@ export class HTTPRequest implements IOHandler {
           `${modelConfigRequest.status}. Please verify this URL points to ` +
           `the model JSON of the model to load.`);
     }
-    let modelConfig: ModelJSON;
+    let modelJSON: ModelJSON;
     try {
-      modelConfig = await modelConfigRequest.json();
+      modelJSON = await modelConfigRequest.json();
     } catch (e) {
       let message = `Failed to parse model JSON of response from ${this.path}.`;
       // TODO(nsthorat): Remove this after some time when we're comfortable that
@@ -168,8 +176,8 @@ export class HTTPRequest implements IOHandler {
       }
       throw new Error(message);
     }
-    const modelTopology = modelConfig.modelTopology;
-    const weightsManifest = modelConfig.weightsManifest;
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
     if (modelTopology == null && weightsManifest == null) {
@@ -185,7 +193,14 @@ export class HTTPRequest implements IOHandler {
       [weightSpecs, weightData] = results;
     }
 
-    return {modelTopology, weightSpecs, weightData};
+    const artifacts: ModelArtifacts = {modelTopology, weightSpecs, weightData};
+    if (modelJSON.trainingConfig != null) {
+      artifacts.trainingConfig = modelJSON.trainingConfig;
+    }
+    if (modelJSON.clientMetadata != null) {
+      artifacts.clientMetadata = modelJSON.clientMetadata;
+    }
+    return artifacts;
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
