@@ -19,7 +19,6 @@ import {describeWithFlags} from '../../jasmine_util';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_util from './gpgpu_util';
-import * as tex_util from './tex_util';
 
 describeWithFlags('gpgpu_util createWebGLContext', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
@@ -60,7 +59,7 @@ describeWithFlags('gpgpu_util createWebGLContext', WEBGL_ENVS, () => {
 describeWithFlags('gpgpu_util createFloat32MatrixTexture', WEBGL_ENVS, () => {
   it('sets the TEXTURE_WRAP S+T parameters to CLAMP_TO_EDGE', () => {
     const gpgpu = new GPGPUContext();
-    const textureConfig = tex_util.getTextureConfig(gpgpu.gl);
+    const textureConfig = gpgpu_util.getTextureConfig(gpgpu.gl);
     const debug = false;
     const tex = gpgpu_util.createFloat32MatrixTexture(
         gpgpu.gl, debug, 32, 32, textureConfig);
@@ -78,7 +77,7 @@ describeWithFlags('gpgpu_util createFloat32MatrixTexture', WEBGL_ENVS, () => {
 
   it('sets the TEXTURE_[MIN|MAG]_FILTER parameters to NEAREST', () => {
     const gpgpu = new GPGPUContext();
-    const textureConfig = tex_util.getTextureConfig(gpgpu.gl);
+    const textureConfig = gpgpu_util.getTextureConfig(gpgpu.gl);
     const debug = false;
     const tex = gpgpu_util.createFloat32MatrixTexture(
         gpgpu.gl, debug, 32, 32, textureConfig);
@@ -98,7 +97,7 @@ describeWithFlags('gpgpu_util createFloat32MatrixTexture', WEBGL_ENVS, () => {
 describeWithFlags('gpgpu_util createPackedMatrixTexture', WEBGL_ENVS, () => {
   it('sets the TEXTURE_WRAP S+T parameters to CLAMP_TO_EDGE', () => {
     const gpgpu = new GPGPUContext();
-    const textureConfig = tex_util.getTextureConfig(gpgpu.gl);
+    const textureConfig = gpgpu_util.getTextureConfig(gpgpu.gl);
     const debug = false;
     const tex = gpgpu_util.createPackedMatrixTexture(
         gpgpu.gl, debug, 32, 32, textureConfig);
@@ -116,7 +115,7 @@ describeWithFlags('gpgpu_util createPackedMatrixTexture', WEBGL_ENVS, () => {
 
   it('sets the TEXTURE_[MIN|MAG]_FILTER parameters to NEAREST', () => {
     const gpgpu = new GPGPUContext();
-    const textureConfig = tex_util.getTextureConfig(gpgpu.gl);
+    const textureConfig = gpgpu_util.getTextureConfig(gpgpu.gl);
     const debug = false;
     const tex = gpgpu_util.createPackedMatrixTexture(
         gpgpu.gl, debug, 32, 32, textureConfig);

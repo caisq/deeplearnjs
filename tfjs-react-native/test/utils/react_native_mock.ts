@@ -15,8 +15,15 @@
  * =============================================================================
  */
 
-// Mock gl-view to export nothing as we don't test it in unit tests.
-// We mock this library as it cannot be loaded in a browser yet we do want
-// to do JS only unit tests.
+interface ImageResolvedAssetSource {
+  uri: string;
+}
+
 // tslint:disable-next-line
-export default {};
+export const Image = {
+  resolveAssetSource: (resourceId: string|number): ImageResolvedAssetSource => {
+    return {
+      uri: `http://localhost/assets/${resourceId}`,
+    };
+  }
+};
